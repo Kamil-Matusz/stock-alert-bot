@@ -1,4 +1,4 @@
 services:
   stock-alert-bot:
-    build: .
-    env_file: .env
+    build: ./backend
+    env_file: ./backend/.env

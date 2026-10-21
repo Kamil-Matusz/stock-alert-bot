@@ -121,3 +121,8 @@ reports/
 .env
 venv/
 .venv/
+
+# ==============================
+# Frontend (Node)
+# ==============================
+node_modules/
