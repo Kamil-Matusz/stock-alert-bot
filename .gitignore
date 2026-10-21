@@ -1,0 +1,123 @@
+﻿
+# ==============================
+# Python
+# ==============================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+*.so
+
+# ==============================
+# Virtual environments
+# ==============================
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# ==============================
+# PyCharm / JetBrains
+# ==============================
+.idea/
+*.iml
+
+# ==============================
+# Testing & coverage
+# ==============================
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+test-results/
+nosetests.xml
+
+# ==============================
+# Linters & type checkers
+# ==============================
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+.ruff_cache/
+
+# ==============================
+# Build & distribution
+# ==============================
+build/
+dist/
+*.egg-info/
+.eggs/
+wheels/
+pip-wheel-metadata/
+MANIFEST
+
+# ==============================
+# Jupyter Notebook
+# ==============================
+.ipynb_checkpoints/
+
+# ==============================
+# Environment variables & secrets
+# ==============================
+.env
+.env.*
+!.env.example
+!.env.template
+*.pem
+*.key
+secrets/
+credentials/
+
+# ==============================
+# Logs & temporary files
+# ==============================
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# ==============================
+# OS files
+# ==============================
+.DS_Store
+.AppleDouble
+Thumbs.db
+Desktop.ini
+
+# ==============================
+# Package managers
+# ==============================
+poetry.toml
+.pdm-python
+.pdm-build/
+__pypackages__/
+
+# ==============================
+# Local databases & generated data
+# ==============================
+*.sqlite
+*.sqlite3
+*.db
+
+# ==============================
+# Project-specific generated files
+# ==============================
+output/
+reports/
+
+# ==============================
+# env secrets
+# ==============================
+.env
+venv/
+.venv/
