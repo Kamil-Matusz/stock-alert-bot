@@ -1,0 +1,30 @@
+name: US Market Stock Alerts (15:30 - 22:00 PL)
+
+on:
+  schedule:
+    - cron: '30,45 14 * * 1-5'
+    - cron: '*/15 15-20 * * 1-5'
+    - cron: '0 21 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  check-prices:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run stock checker
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: python check_stocks.py
