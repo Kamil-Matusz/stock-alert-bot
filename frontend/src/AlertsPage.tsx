@@ -19,29 +19,32 @@ import {
 import { useDisclosure } from '@mantine/hooks'
 import { modals } from '@mantine/modals'
 import { IconPencil, IconPlus, IconRefresh, IconTrash, IconTrendingDown, IconTrendingUp } from '@tabler/icons-react'
+import { Trans, useTranslation } from 'react-i18next'
 import { supabase, type StockAlert } from './supabase'
 import { notifyError, notifySuccess } from './notify'
 import { AlertForm } from './AlertForm'
+import { LanguageSwitch } from './LanguageSwitch'
 
-const numberFormat = new Intl.NumberFormat('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 4 })
+const formatNumber = (value: number | null, locale: string) =>
+  value === null ? '-' : value.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 4 })
 
-const formatNumber = (value: number | null) => (value === null ? '-' : numberFormat.format(value))
-
-const formatDate = (value: string) =>
-  new Date(value).toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' })
+const formatDate = (value: string, locale: string) =>
+  new Date(value).toLocaleString(locale, { dateStyle: 'short', timeStyle: 'short' })
 
 function StatusBadge({ status }: { status: string | null }) {
+  const { t } = useTranslation()
+
   if (status === 'ALERT_DROP') {
     return (
       <Badge color="red" leftSection={<IconTrendingDown size={14} />}>
-        Spadek
+        {t('alerts.statusDrop')}
       </Badge>
     )
   }
   if (status === 'ALERT_RISE') {
     return (
       <Badge color="teal" leftSection={<IconTrendingUp size={14} />}>
-        Wzrost
+        {t('alerts.statusRise')}
       </Badge>
     )
   }
@@ -53,6 +56,8 @@ function StatusBadge({ status }: { status: string | null }) {
 }
 
 export function AlertsPage({ email }: { email: string }) {
+  const { t, i18n } = useTranslation()
+  const locale = i18n.language
   const [alerts, setAlerts] = useState<StockAlert[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<StockAlert | null>(null)
@@ -101,13 +106,17 @@ export function AlertsPage({ email }: { email: string }) {
 
   function confirmDelete(alert: StockAlert) {
     modals.openConfirmModal({
-      title: 'Usuń alert',
+      title: t('alerts.deleteTitle'),
       children: (
         <Text size="sm">
-          Usunąć alert <b>{alert.name}</b> ({alert.ticker})?
+          <Trans
+            i18nKey="alerts.deleteConfirm"
+            values={{ name: alert.name, ticker: alert.ticker }}
+            components={{ b: <b /> }}
+          />
         </Text>
       ),
-      labels: { confirm: 'Usuń', cancel: 'Anuluj' },
+      labels: { confirm: t('common.delete'), cancel: t('common.cancel') },
       confirmProps: { color: 'red' },
       onConfirm: async () => {
         const { error } = await supabase.from('stock_alerts').delete().eq('id', alert.id)
@@ -115,7 +124,7 @@ export function AlertsPage({ email }: { email: string }) {
           notifyError(error.message)
           return
         }
-        notifySuccess('Usunięto alert')
+        notifySuccess(t('alerts.deleted'))
         void loadAlerts()
       },
     })
@@ -125,29 +134,29 @@ export function AlertsPage({ email }: { email: string }) {
     <Table.Tr key={alert.id}>
       <Table.Td fw={600}>{alert.ticker}</Table.Td>
       <Table.Td>{alert.name}</Table.Td>
-      <Table.Td ta="right">{formatNumber(alert.low_target)}</Table.Td>
-      <Table.Td ta="right">{formatNumber(alert.high_target)}</Table.Td>
-      <Table.Td ta="right">{formatNumber(alert.last_price)}</Table.Td>
+      <Table.Td ta="right">{formatNumber(alert.low_target, locale)}</Table.Td>
+      <Table.Td ta="right">{formatNumber(alert.high_target, locale)}</Table.Td>
+      <Table.Td ta="right">{formatNumber(alert.last_price, locale)}</Table.Td>
       <Table.Td>
         <StatusBadge status={alert.status} />
       </Table.Td>
-      <Table.Td c="dimmed">{formatDate(alert.updated_at)}</Table.Td>
+      <Table.Td c="dimmed">{formatDate(alert.updated_at, locale)}</Table.Td>
       <Table.Td>
         <Switch
           checked={alert.is_active}
           onChange={(event) => void toggleActive(alert, event.currentTarget.checked)}
-          aria-label="Aktywny"
+          aria-label={t('common.active')}
         />
       </Table.Td>
       <Table.Td>
         <Group gap={4} justify="flex-end" wrap="nowrap">
-          <Tooltip label="Edytuj">
-            <ActionIcon variant="subtle" color="gray" onClick={() => openEditor(alert)} aria-label="Edytuj">
+          <Tooltip label={t('common.edit')}>
+            <ActionIcon variant="subtle" color="gray" onClick={() => openEditor(alert)} aria-label={t('common.edit')}>
               <IconPencil size={18} />
             </ActionIcon>
           </Tooltip>
-          <Tooltip label="Usuń">
-            <ActionIcon variant="subtle" color="red" onClick={() => confirmDelete(alert)} aria-label="Usuń">
+          <Tooltip label={t('common.delete')}>
+            <ActionIcon variant="subtle" color="red" onClick={() => confirmDelete(alert)} aria-label={t('common.delete')}>
               <IconTrash size={18} />
             </ActionIcon>
           </Tooltip>
@@ -165,20 +174,21 @@ export function AlertsPage({ email }: { email: string }) {
             <Text size="sm" c="dimmed" visibleFrom="sm">
               {email}
             </Text>
+            <LanguageSwitch />
             <Button variant="default" size="xs" onClick={() => void supabase.auth.signOut()}>
-              Wyloguj
+              {t('alerts.logout')}
             </Button>
           </Group>
         </Group>
 
         <Group justify="flex-end" gap="xs">
-          <Tooltip label="Odśwież">
-            <ActionIcon variant="default" size="lg" onClick={() => void loadAlerts()} aria-label="Odśwież">
+          <Tooltip label={t('alerts.refresh')}>
+            <ActionIcon variant="default" size="lg" onClick={() => void loadAlerts()} aria-label={t('alerts.refresh')}>
               <IconRefresh size={18} />
             </ActionIcon>
           </Tooltip>
           <Button leftSection={<IconPlus size={16} />} onClick={() => openEditor(null)}>
-            Dodaj alert
+            {t('alerts.add')}
           </Button>
         </Group>
 
@@ -189,21 +199,21 @@ export function AlertsPage({ email }: { email: string }) {
             </Center>
           ) : alerts.length === 0 ? (
             <Text c="dimmed" ta="center" py="xl">
-              Brak alertów. Dodaj pierwszy.
+              {t('alerts.empty')}
             </Text>
           ) : (
             <Table.ScrollContainer minWidth={900} type="native">
               <Table striped highlightOnHover verticalSpacing="sm">
                 <Table.Thead>
                   <Table.Tr>
-                    <Table.Th>Ticker</Table.Th>
-                    <Table.Th>Nazwa</Table.Th>
-                    <Table.Th ta="right">Min</Table.Th>
-                    <Table.Th ta="right">Max</Table.Th>
-                    <Table.Th ta="right">Ostatnia cena</Table.Th>
-                    <Table.Th>Status</Table.Th>
-                    <Table.Th>Aktualizacja</Table.Th>
-                    <Table.Th>Aktywny</Table.Th>
+                    <Table.Th>{t('alerts.columns.ticker')}</Table.Th>
+                    <Table.Th>{t('alerts.columns.name')}</Table.Th>
+                    <Table.Th ta="right">{t('alerts.columns.min')}</Table.Th>
+                    <Table.Th ta="right">{t('alerts.columns.max')}</Table.Th>
+                    <Table.Th ta="right">{t('alerts.columns.lastPrice')}</Table.Th>
+                    <Table.Th>{t('alerts.columns.status')}</Table.Th>
+                    <Table.Th>{t('alerts.columns.updated')}</Table.Th>
+                    <Table.Th>{t('common.active')}</Table.Th>
                     <Table.Th />
                   </Table.Tr>
                 </Table.Thead>
@@ -214,7 +224,7 @@ export function AlertsPage({ email }: { email: string }) {
         </Paper>
       </Stack>
 
-      <Modal opened={formOpened} onClose={closeForm} title={editing ? 'Edytuj alert' : 'Nowy alert'}>
+      <Modal opened={formOpened} onClose={closeForm} title={editing ? t('alerts.editTitle') : t('alerts.newTitle')}>
         <AlertForm key={editing?.id ?? 'new'} alert={editing} onSaved={handleSaved} />
       </Modal>
     </Container>

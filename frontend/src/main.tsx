@@ -5,6 +5,7 @@ import { ModalsProvider } from '@mantine/modals'
 import { Notifications } from '@mantine/notifications'
 import '@mantine/core/styles.css'
 import '@mantine/notifications/styles.css'
+import './i18n'
 import App from './App.tsx'
 
 const theme = createTheme({ primaryColor: 'teal' })

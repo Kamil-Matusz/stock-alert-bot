@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Button, Group, NumberInput, Stack, Switch, Text, TextInput } from '@mantine/core'
 import { isNotEmpty, useForm } from '@mantine/form'
+import { useTranslation } from 'react-i18next'
+import i18n from './i18n'
 import { supabase, type StockAlert, type StockAlertInput } from './supabase'
 import { notifyError, notifySuccess } from './notify'
 
@@ -17,12 +19,13 @@ const toNumber = (value: number | string) => (value === '' ? null : Number(value
 function validateTargets(high: number | string, values: FormValues) {
   const low = toNumber(values.low_target)
   const highNumber = toNumber(high)
-  if (low === null && highNumber === null) return 'Ustaw co najmniej jeden próg'
-  if (low !== null && highNumber !== null && low >= highNumber) return 'Próg max musi być wyższy niż min'
+  if (low === null && highNumber === null) return i18n.t('form.targetRequired')
+  if (low !== null && highNumber !== null && low >= highNumber) return i18n.t('form.targetOrder')
   return null
 }
 
 export function AlertForm({ alert, onSaved }: { alert: StockAlert | null; onSaved: () => void }) {
+  const { t } = useTranslation()
   const [saving, setSaving] = useState(false)
   const form = useForm<FormValues, StockAlertInput>({
     initialValues: {
@@ -33,8 +36,8 @@ export function AlertForm({ alert, onSaved }: { alert: StockAlert | null; onSave
       is_active: alert?.is_active ?? true,
     },
     validate: {
-      ticker: isNotEmpty('Podaj ticker'),
-      name: isNotEmpty('Podaj nazwę'),
+      ticker: isNotEmpty(t('form.tickerRequired')),
+      name: isNotEmpty(t('form.nameRequired')),
       high_target: validateTargets,
     },
     transformValues: (values) => ({
@@ -57,27 +60,27 @@ export function AlertForm({ alert, onSaved }: { alert: StockAlert | null; onSave
       notifyError(error.message)
       return
     }
-    notifySuccess(alert ? 'Zapisano zmiany' : 'Dodano alert')
+    notifySuccess(alert ? t('form.saved') : t('form.added'))
     onSaved()
   }
 
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
       <Stack>
-        <TextInput label="Ticker" placeholder="AAPL" data-autofocus {...form.getInputProps('ticker')} />
-        <TextInput label="Nazwa" placeholder="Apple" {...form.getInputProps('name')} />
+        <TextInput label={t('form.ticker')} placeholder="AAPL" data-autofocus {...form.getInputProps('ticker')} />
+        <TextInput label={t('form.name')} placeholder={t('form.namePlaceholder')} {...form.getInputProps('name')} />
         <Group grow align="flex-start">
-          <NumberInput label="Próg min (spadek)" min={0} decimalScale={4} {...form.getInputProps('low_target')} />
-          <NumberInput label="Próg max (wzrost)" min={0} decimalScale={4} {...form.getInputProps('high_target')} />
+          <NumberInput label={t('form.lowTarget')} min={0} decimalScale={4} {...form.getInputProps('low_target')} />
+          <NumberInput label={t('form.highTarget')} min={0} decimalScale={4} {...form.getInputProps('high_target')} />
         </Group>
-        <Switch label="Aktywny" {...form.getInputProps('is_active', { type: 'checkbox' })} />
+        <Switch label={t('common.active')} {...form.getInputProps('is_active', { type: 'checkbox' })} />
         {alert && (
           <Text size="xs" c="dimmed">
-            Zmiana tickera lub progów resetuje status alertu.
+            {t('form.resetHint')}
           </Text>
         )}
         <Button type="submit" loading={saving}>
-          {alert ? 'Zapisz' : 'Dodaj'}
+          {alert ? t('form.save') : t('form.add')}
         </Button>
       </Stack>
     </form>

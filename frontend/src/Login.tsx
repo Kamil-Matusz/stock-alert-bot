@@ -1,15 +1,18 @@
 import { useState } from 'react'
-import { Button, Center, Paper, Stack, Text, TextInput, Title } from '@mantine/core'
+import { Button, Center, Group, Paper, Stack, Text, TextInput, Title } from '@mantine/core'
 import { isEmail, useForm } from '@mantine/form'
+import { Trans, useTranslation } from 'react-i18next'
 import { supabase } from './supabase'
 import { notifyError } from './notify'
+import { LanguageSwitch } from './LanguageSwitch'
 
 export function Login() {
+  const { t } = useTranslation()
   const [sentTo, setSentTo] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const form = useForm({
     initialValues: { email: '' },
-    validate: { email: isEmail('Niepoprawny adres email') },
+    validate: { email: isEmail(t('login.invalidEmail')) },
   })
 
   async function handleSubmit({ email }: { email: string }) {
@@ -31,17 +34,20 @@ export function Login() {
     <Center h="100vh" px="md">
       <Paper withBorder shadow="sm" p="xl" radius="md" w="100%" maw={400}>
         <Stack>
-          <Title order={2}>Stock Alerts</Title>
+          <Group justify="space-between">
+            <Title order={2}>Stock Alerts</Title>
+            <LanguageSwitch />
+          </Group>
           {sentTo ? (
             <Text>
-              Link do logowania wysłany na <b>{sentTo}</b>. Sprawdź skrzynkę.
+              <Trans i18nKey="login.linkSent" values={{ email: sentTo }} components={{ b: <b /> }} />
             </Text>
           ) : (
             <form onSubmit={form.onSubmit(handleSubmit)}>
               <Stack>
-                <TextInput label="Email" placeholder="ty@example.com" {...form.getInputProps('email')} />
+                <TextInput label="Email" placeholder={t('login.emailPlaceholder')} {...form.getInputProps('email')} />
                 <Button type="submit" loading={loading}>
-                  Wyślij magic link
+                  {t('login.submit')}
                 </Button>
               </Stack>
             </form>
