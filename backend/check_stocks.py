@@ -1,6 +1,7 @@
 ﻿import logging
 import os
 from datetime import datetime, timezone
+import httpx
 import yfinance as yf
 from dotenv import load_dotenv
 from supabase import create_client, Client
@@ -22,6 +23,18 @@ def resolve_status(price, low, high, status):
     if status == ALERT_RISE and high is not None and price > high * (1 - RESET_BUFFER):
         return status
     return None
+
+
+def send_telegram(text):
+    token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+    if not token or not chat_id:
+        return
+    httpx.post(
+        f"https://api.telegram.org/bot{token}/sendMessage",
+        json={"chat_id": chat_id, "text": text},
+        timeout=10,
+    ).raise_for_status()
 
 
 def fetch_prices(tickers):
@@ -62,8 +75,10 @@ def check_alert(supabase: Client, item, prices):
         log.info(f"[INFO] {name} ({ticker}): {display_price} - {new_status} already triggered.")
     elif new_status == ALERT_DROP:
         log.warning(f"📉 [ALERT DROP] {name} ({ticker}) dropped to {display_price} (Target: <= {low})")
+        send_telegram(f"📉 {name} ({ticker}) spadł do {display_price} (próg: <= {low})")
     elif new_status == ALERT_RISE:
         log.warning(f"📈 [ALERT RISE] {name} ({ticker}) rose to {display_price} (Target: >= {high})")
+        send_telegram(f"📈 {name} ({ticker}) wzrósł do {display_price} (próg: >= {high})")
     else:
         log.info(f"[OK] {name} ({ticker}): Current price = {display_price} (Targets: {low} - {high})")
 
